@@ -1,0 +1,34 @@
+name: release
+
+# Publishes (or refreshes) the GitHub release for the version in CITATION.cff,
+# with the viewer attached as CactusAlignmentViewer.html.
+# New version: change "version:" in CITATION.cff, update index.html, push to main.
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "CITATION.cff", ".github/workflows/release.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read version
+        id: ver
+        run: echo "tag=v$(grep -m1 '^version:' CITATION.cff | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Prepare download file
+        run: cp index.html CactusAlignmentViewer.html
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          files: CactusAlignmentViewer.html
+          make_latest: true
+          body: |
+            **Download `CactusAlignmentViewer.html` below and double-click it** to open the viewer in your web browser.
+            No installation needed; it works offline and your data never leaves your computer.
